@@ -23,29 +23,51 @@ fs.readFile('./AllSets.json', 'utf8', function (err, data) {
 });
 
 app.get('/', function (req, res) {
-    res.write(getRandomFlavorText(all));
-    res.end();
+    writeResponse(res, getRandomFlavorText(all));
 })
 app.get('/gvg', function (req, res) {
-  res.write(getRandomFlavorText(gvg));
-  res.end();
+    writeResponse(res, getRandomFlavorText(gvg));
 })
 app.get('/naxx', function (req, res) {
-  res.write(getRandomFlavorText(naxx));
-  res.end();
+    writeResponse(res, getRandomFlavorText(naxx));
 })
 app.get('/brm', function (req, res) {
-  res.write(getRandomFlavorText(brm));
-  res.end();
+    writeResponse(res, getRandomFlavorText(brm));
 })
 app.get('/tgt', function (req, res) {
-  res.write(getRandomFlavorText(tgt));
-  res.end();
+    writeResponse(res, getRandomFlavorText(tgt));
 })
 app.get('/classic', function (req, res) {
-  res.write(getRandomFlavorText(classic));
-  res.end();
+    writeResponse(res, getRandomFlavorText(classic));
 })
+
+app.get('/utftest', function (req, res) {
+  for(var i in all){
+    if(all[i].name == "Mekgineer Thermaplugg")
+      writeResponse(res, getFlavorTextFor(i));
+  }
+})
+
+app.get('/*', function (req, res) {
+  var index = parseInt(req.url.split("/").join(""));
+  writeResponse(res, getFlavorTextFor(index));
+})
+
+function getFlavorTextFor(index){
+  var card = all[index];
+  if(!card)
+    return "Card does not exist (index: " + index + ")";
+  if(!card.flavor)
+    return "Card does not have flavor text :( (card:" + card.name + ")";
+  var cardText = formatText(card.flavor);
+  return cardText;
+}
+
+function writeResponse(res, text){
+  res.set("Content-Type", "application/json; charset=utf-8")
+  res.write(text);
+  res.end();
+}
 var port = process.env.PORT || 3000;
 
 
@@ -58,6 +80,10 @@ var server = app.listen(port, function () {
 
 })
 
+function formatText(text){
+  return text.split("\\").join("").split("\"").join("");
+}
+
 function getRandomFlavorText(list){
   var index = getRandomInt(0, list.length);
   var randomCard = list[index];
@@ -67,7 +93,7 @@ function getRandomFlavorText(list){
     return "ERROR!";
   }
   if(randomCard.flavor)
-    return randomCard.flavor.split("\\").join("").split("\"").join("");
+    return formatText(randomCard.flavor);
   else
     return getRandomFlavorText(list);
 }
